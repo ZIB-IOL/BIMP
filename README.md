@@ -13,7 +13,7 @@ The rest of the project is structured as follows:
 - [`strategies`](strategies): Contains all used sparsification methods.
 - [`runners`](runners): Contains classes to control the training and collection of metrics.
 - [`metrics`](metrics): Contains all metrics as well as FLOP computation methods.
-- [`models_pytorch`](models): Contains all model architectures used.
+- [`models`](models): Contains all model architectures used.
 
 
 ### Citation
