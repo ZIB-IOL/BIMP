@@ -1,5 +1,5 @@
 ## How I Learned to Stop Worrying and Love Retraining
-*Authors: Max Zimmer, [Christoph Spiegel](http://www.christophspiegel.berlin/), [Sebastian Pokutta](http://www.pokutta.com/)*
+*Authors: [Max Zimmer](https://maxzimmer.org/), [Christoph Spiegel](http://www.christophspiegel.berlin/), [Sebastian Pokutta](http://www.pokutta.com/)*
 
 This repository contains the code to reproduce the experiments from the ["How I Learned to Stop Worrying and Love Retraining" (arXiv:2111.00843v2)](https://arxiv.org/abs/2111.00843v2) paper.
 The code is based on [PyTorch 1.9](https://pytorch.org/) and the experiment-tracking platform [Weights & Biases](https://wandb.ai).
