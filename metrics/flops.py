@@ -1,7 +1,7 @@
 # ===========================================================================
-# Project:      How I Learned to Stop Worrying and Love Retraining
+# Project:      How I Learned to Stop Worrying and Love Retraining - IOL Lab @ ZIB
 # File:         metrics/flops.py
-# Description:  Methods to compute Inference-FLOPS. Modified from https://github.com/JJGO/shrinkbench
+# Description:  Methods to compute Inference-FLOPS. Adapted from https://github.com/JJGO/shrinkbench
 # ===========================================================================
 import torch
 from collections import OrderedDict
@@ -10,7 +10,7 @@ import numpy as np
 
 @torch.no_grad()
 def forward_hook_applyfn(hook, model):
-    """Modified from https://github.com/JJGO/shrinkbench"""
+    """Adapted from https://github.com/JJGO/shrinkbench"""
     hooks = []
 
     def register_hook(module):

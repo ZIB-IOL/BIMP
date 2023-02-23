@@ -1,14 +1,40 @@
 # ===========================================================================
-# Project:      How I Learned to Stop Worrying and Love Retraining
+# Project:      How I Learned to Stop Worrying and Love Retraining - IOL Lab @ ZIB
 # File:         metrics/metrics.py
 # Description:  Useful metrics
 # ===========================================================================
 import math
-from typing import Dict, Union, Tuple
+from typing import Union, Tuple, List
 
 import torch
 
 from metrics import flops
+
+
+@torch.no_grad()
+def get_flops(model, x_input):
+    return flops.flops(model, x_input)
+
+
+@torch.no_grad()
+def get_theoretical_speedup(n_flops: int, n_nonzero_flops: int) -> dict:
+    if n_nonzero_flops == 0:
+        # Would yield infinite speedup
+        return {}
+    return float(n_flops) / n_nonzero_flops
+
+
+def modular_sparsity(parameters_to_prune: List) -> float:
+    """Returns the global sparsity out of all prunable parameters"""
+    n_total, n_zero = 0., 0.
+    for module, param_type in parameters_to_prune:
+        if hasattr(module, param_type) and not isinstance(getattr(module, param_type), type(None)):
+            param = getattr(module, param_type)
+            n_param = float(torch.numel(param))
+            n_zero_param = float(torch.sum(param == 0))
+            n_total += n_param
+            n_zero += n_zero_param
+    return float(n_zero) / n_total if n_total > 0 else 0
 
 
 def global_sparsity(module: torch.nn.Module, param_type: Union[str, None] = None) -> float:
@@ -24,42 +50,6 @@ def global_sparsity(module: torch.nn.Module, param_type: Union[str, None] = None
                 n_total += n_param
                 n_zero += n_zero_param
     return float(n_zero) / n_total
-
-
-def per_layer_sparsity(model: torch.nn.Module) -> Dict[str, float]:
-    """Returns the per-layer-sparsity of model"""
-    per_layer_sparsity_dict = dict()
-    param_type = 'weight'  # Only compute for weights, since we do not sparsify biases
-    for name, submodule in model.named_modules():
-        if hasattr(submodule, param_type) and not isinstance(getattr(submodule, param_type), type(None)):
-            if name in per_layer_sparsity_dict:
-                continue
-            per_layer_sparsity_dict[name] = global_sparsity(submodule, param_type=param_type)
-    return per_layer_sparsity_dict
-
-
-def compression_rate(module: torch.nn.Module, param_type: Union[str, None] = None) -> Union[dict, float]:
-    """Returns the global compression rate of module (mostly of entire model)
-    defined as |W|/||W||_0 which is equivalent to 1/1-sparsity for sparsity < 1
-    """
-    s = global_sparsity(module, param_type=param_type)
-    if s == 1:
-        # The global sparsity is 1, hence the compression rate is infinitely large.
-        return {}
-    return 1. / (1 - s)
-
-
-@torch.no_grad()
-def get_flops(model, x_input):
-    return flops.flops(model, x_input)
-
-
-@torch.no_grad()
-def get_theoretical_speedup(n_flops: int, n_nonzero_flops: int) -> Union[dict, float]:
-    if n_nonzero_flops == 0:
-        # Would yield infinite speedup
-        return {}
-    return float(n_flops) / n_nonzero_flops
 
 
 @torch.no_grad()
@@ -79,7 +69,7 @@ def get_parameter_count(model: torch.nn.Module) -> Tuple[int, int]:
 @torch.no_grad()
 def get_distance_to_pruned(model: torch.nn.Module, sparsity: float) -> Tuple[float, float]:
     prune_vector = torch.cat(
-        [module.weight.view(-1) for name, module in model.named_modules() if hasattr(module, 'weight')
+        [module.weight.flatten() for name, module in model.named_modules() if hasattr(module, 'weight')
          and not isinstance(module.weight, type(None)) and not isinstance(module,
                                                                           torch.nn.BatchNorm2d)])
     n_params = float(prune_vector.numel())
@@ -94,7 +84,19 @@ def get_distance_to_pruned(model: torch.nn.Module, sparsity: float) -> Tuple[flo
 @torch.no_grad()
 def get_distance_to_origin(model: torch.nn.Module) -> float:
     prune_vector = torch.cat(
-        [module.weight.view(-1) for name, module in model.named_modules() if hasattr(module, 'weight')
+        [module.weight.flatten() for name, module in model.named_modules() if hasattr(module, 'weight')
          and not isinstance(module.weight, type(None)) and not isinstance(module,
                                                                           torch.nn.BatchNorm2d)])
     return float(torch.norm(prune_vector, p=2))
+
+
+def per_layer_sparsity(model: torch.nn.Module):
+    """Returns the per-layer-sparsity of model"""
+    per_layer_sparsity_dict = dict()
+    param_type = 'weight'  # Only compute for weights, since we do not sparsify biases
+    for name, submodule in model.named_modules():
+        if hasattr(submodule, param_type) and not isinstance(getattr(submodule, param_type), type(None)):
+            if name in per_layer_sparsity_dict:
+                continue
+            per_layer_sparsity_dict[name] = global_sparsity(submodule, param_type=param_type)
+    return per_layer_sparsity_dict
