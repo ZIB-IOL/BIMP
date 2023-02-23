@@ -1,5 +1,5 @@
 # ===========================================================================
-# Project:      How I Learned to Stop Worrying and Love Retraining
+# Project:      How I Learned to Stop Worrying and Love Retraining - IOL Lab @ ZIB
 # File:         config.py
 # Description:  Datasets, Normalization and Transforms
 # ===========================================================================
