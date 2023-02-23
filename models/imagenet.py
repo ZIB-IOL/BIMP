@@ -1,6 +1,6 @@
 # ===========================================================================
-# Project:      How I Learned to Stop Worrying and Love Retraining
-# File:         imagenet.py
+# Project:      How I Learned to Stop Worrying and Love Retraining - IOL Lab @ ZIB
+# File:         models/imagenet.py
 # Description:  ImageNet Models
 # ===========================================================================
 

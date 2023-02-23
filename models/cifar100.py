@@ -1,6 +1,6 @@
 # ===========================================================================
-# Project:      How I Learned to Stop Worrying and Love Retraining
-# File:         cifar100.py
+# Project:      How I Learned to Stop Worrying and Love Retraining - IOL Lab @ ZIB
+# File:         models/cifar100.py
 # Description:  CIFAR-100 Models
 # ===========================================================================
 

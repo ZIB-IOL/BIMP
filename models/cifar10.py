@@ -1,6 +1,6 @@
 # ===========================================================================
-# Project:      How I Learned to Stop Worrying and Love Retraining
-# File:         cifar10.py
+# Project:      How I Learned to Stop Worrying and Love Retraining - IOL Lab @ ZIB
+# File:         models/cifar10.py
 # Description:  CIFAR-10 Models
 # ===========================================================================
 
@@ -21,7 +21,6 @@ def ResNet56():
             self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2)
             self.layer3 = self._make_layer(block, 64, num_blocks[2], stride=2)
             self.linear = nn.Linear(64, num_classes)
-            # self.linear.is_classifier = True    # So layer is not pruned
 
         def _make_layer(self, block, planes, num_blocks, stride):
             strides = [stride] + [1] * (num_blocks - 1)
@@ -180,44 +179,3 @@ def ResNet18():
 
     model = ResNet(BasicBlock, [2, 2, 2, 2], num_classes=10)
     return model
-
-
-def VGG16():
-    return VGG(vgg_name='VGG16')
-
-
-class VGG(nn.Module):
-    # Adapted from https://github.com/jaeho-lee/layer-adaptive-sparsity/blob/main/tools/models/vgg.py
-    def __init__(self, vgg_name, use_bn=True):
-        cfg = {
-            'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-            'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-            'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
-            'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512,
-                      'M'],
-        }
-
-        super(VGG, self).__init__()
-        self.features = self._make_layers(cfg[vgg_name], use_bn)
-        self.classifier = nn.Linear(512, 10)
-
-    def forward(self, x):
-        out = self.features(x)
-        out = out.view(out.size(0), -1)
-        out = self.classifier(out)
-        return out
-
-    def _make_layers(self, cfg, use_bn):
-        layers = []
-        in_channels = 3
-        for x in cfg:
-            if x == 'M':
-                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
-            else:
-                layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1)]
-                if use_bn:
-                    layers += [nn.BatchNorm2d(x)]
-                layers += [nn.ReLU(inplace=True)]
-                in_channels = x
-        layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
-        return nn.Sequential(*layers)
